@@ -9,6 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+ 
 
   <style>
     body {
@@ -69,6 +70,46 @@
       align-self: flex-start;
       background-color: #fff;
     }
+    .sent {
+  align-self: flex-end;
+  background-color: #dcf8c6;
+  position: relative;
+  border-radius: 10px 10px 0 10px;
+  margin-right: 10px;
+}
+
+.sent::before {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 10px;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-left: 10px solid #dcf8c6;
+  border-bottom: 10px solid transparent;
+}
+
+.received {
+  align-self: flex-start;
+  background-color: #fff;
+  position: relative;
+  border-radius: 10px 10px 10px 0;
+  margin-left: 10px;
+}
+
+.received::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 10px;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-right: 10px solid #fff;
+  border-bottom: 10px solid transparent;
+}
+
 
     .timestamp {
       font-size: 10px;
@@ -115,6 +156,14 @@
       margin: 0 10px;
       padding-left: 5px;
     }
+
+    #emojiBtn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+
   </style>
 </head>
 <body>
@@ -124,7 +173,10 @@
   </div>
 
   <div id="chatContainer">
-    <div id="chatBox"></div>
+    <div id="chatBox">
+      <!-- Anchor for auto-scroll -->
+      <div id="scrollAnchor"></div>
+    </div>
   </div>
 
   <div class="typing-indicator" id="typingIndicator"></div>
@@ -132,6 +184,8 @@
   <div class="input-container">
     <input type="text" id="messageInput" placeholder="Type your message..." />
     <button id="sendBtn">Send</button>
+ 
+
   </div>
 
   <script>
@@ -161,6 +215,13 @@
     const input = document.getElementById("messageInput");
     const typingIndicator = document.getElementById("typingIndicator");
 
+    const scrollToBottom = () => {
+      const anchor = document.getElementById("scrollAnchor");
+      if (anchor) {
+        anchor.scrollIntoView({ behavior: "smooth" });
+      }
+    };
+
     const sendMessage = async () => {
       const text = input.value.trim();
       if (!text) return;
@@ -174,10 +235,8 @@
 
       input.value = "";
       db.collection("chats").doc(chatId).set({ typing: "" }, { merge: true });
-    };
 
-    const scrollToBottom = () => {
-      chatBox.scrollTop = chatBox.scrollHeight;
+      setTimeout(scrollToBottom, 100);
     };
 
     db.collection("chats").doc(chatId).collection("messages").orderBy("timestamp")
@@ -211,13 +270,12 @@
 
         chatBox.appendChild(fragment);
 
-        // Check if the user is at the bottom
-        const atBottom = chatBox.scrollHeight - chatBox.scrollTop === chatBox.clientHeight;
+        // Re-append anchor and scroll
+        const anchor = document.createElement("div");
+        anchor.id = "scrollAnchor";
+        chatBox.appendChild(anchor);
 
-        // Scroll to the bottom only if the user was at the bottom
-        if (atBottom) {
-          setTimeout(scrollToBottom, 100);
-        }
+        setTimeout(scrollToBottom, 100);
       });
 
     input.addEventListener("input", () => {
@@ -243,6 +301,10 @@
     });
 
     document.getElementById("sendBtn").addEventListener("click", sendMessage);
+
+  
+
+
   </script>
 </body>
 </html>
