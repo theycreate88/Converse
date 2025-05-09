@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+     
+
+
+    <style>
+
+      /* Scrollbar styles for WebKit-based browsers (Chrome, Safari) */
+      ::-webkit-scrollbar {
+   
+   width: 12px; /* Adjust the width of the scrollbar */
+}
+
+::-webkit-scrollbar-thumb {
+   background-color: #38445c; /* Color of the thumb */
+   border-radius: 10px; /* Optional: Rounded edges for the thumb */
+}
+
+::-webkit-scrollbar-track {
+   background-color: #38445c; /* Color of the track */
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+ 
+
+#backgroundcover {
+  height: 100vh;
+  
+  text-align: center;
+ 
+ 
+  
+  background: 
+     
+    url('converse4.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+
+}
+
+        
+      
+        
+ 
+
+        #loginLink{
+          display: inline-block;
+           
+           align-content: center;
+           text-align: center;
+           width: 260px;
+           height: 50px;
+           color:white;
+           margin-right: 20px;
+           border-radius: 25px;
+           text-decoration: none;
+
+            background-color:#36477d;
+            border-style: groove;
+            border: 2px solid  bisque;
+            color: white;
+            margin-top: 480px;
+            justify-self: center;
+           transition: transform 0.3s ease;}
+
+        #loginLink:hover{
+            
+            
+           opacity: 0.7;
+           transform: translateY(-10px);
+        }
+        
+       
+        #text{
+             margin-top: 0px;
+             padding-top: 0px;
+             
+        }
+
+    
+        #text p{
+            font-size: 26px;
+            font-weight: 600px;
+            
+            color: #47ABFF;
+            opacity: 0.2;
+             
+        }
+
+        #typing { padding-top: 60px;
+                  align-items: center;
+                  padding-left: 20px;
+            font-size: 46px;
+            font-weight: 700;
+      white-space: pre;
+      color: #50576c;
+      opacity: 0.8;
+
+      border-right: 2px solid black;
+      animation: blink 0.75s step-end infinite;
+    }
+    @keyframes blink {
+      50% {
+        border-color: transparent;
+      }
+    }
+      
+    #footer{
+    
+      height: 400px;
+      background-color: black;
+     
+      margin-left: 0px;
+      padding-top: 50px;
+      display: flex;
+      color: white;
+    }
+   #footer  hr {
+      position: absolute;
+   flex: none;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-right: none;
+  border-left: none;
+  border-bottom: none;
+  opacity: 0.6;
+}
+
+
+   .footerdivs{
+
+    margin-left: 50px;
+    margin-right: 120px;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    padding-top: 70px;
+    gap: 20px;
+    
+   }
+
+   .footerdivs p{
+    font-size: 16px;
+    font-weight: 850;
+    font-family: gdsherpa, gdsherpaVF4 fallback, Helvetica, Arial, sans-serif;
+   }
+   .footerdivs a{
+    text-decoration: none;
+    color:rgb(186, 192, 195);
+    font-family: gdsherpa, gdsherpaVF4 fallback, Helvetica, Arial, sans-serif;
+    font-size: 12.8px;
+    font-weight: 565;
+   }
+
+   .footerdivs a:hover{
+    text-decoration: underline;
+   }
+
+   .curtain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      z-index: 9999;
+      animation: curtainUp 0.4s ease-in-out forwards;
+    }
+
+    @keyframes curtainUp {
+      0% { top: 0; }
+      100% { top: -100%; }
+    }
+
+    
+    </style>
+</head>
+<body>
+ 
+
+  <div class="curtain" id="curtain"></div>
+   <div id="backgroundcover">
+    <div id="typing"></div>
+  
+    <div id="centerdiv"><a href="" id="loginLink">Login</a></div>
+
+   </div>
+
+   
+    
+    <div id="footer">
+     <hr>
+      
+      <div class="footerdivs"><p>About Converse</p>
+        <a href="">About Us</a> 
+        <a href="">Careers</a> 
+        <a href="">Contact Us</a> 
+        <a href="">Legal</a>
+        <a href="">Investor Relations</a> 
+        <a href="">Trust Center</a> 
+      </div>
+      <div class="footerdivs"><p>About</p>
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+      </div>
+      <div class="footerdivs"><p>About</p>
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+      </div>
+
+      <div class="footerdivs"><p>About</p>
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+      </div>
+
+      <div class="footerdivs"><p>About</p>
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+      </div>
+
+      <div class="footerdivs"><p>About</p>
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+        <a href="">About Us</a> 
+      </div>
+    </div>
+ 
+    <script type="module">
+
+      //curtain
+      window.addEventListener('load', () => {
+      // Allow scroll after curtain is gone
+      setTimeout(() => {
+        document.body.style.overflow = 'auto';
+      }, 2000); // Same as animation duration
+    });
+
+        const text = "Connecting You – Not Just Nationally but Internationally!";
+        const speed = 50; // speed in ms
+        let index = 0;
+    
+        function typeText() {
+          if (index < text.length) {
+            document.getElementById("typing").textContent += text.charAt(index);
+            index++;
+            setTimeout(typeText, speed);
+          }
+        }
+    
+        window.onload = typeText;
+
+ // Import Firebase modules (modular SDK)
+ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAWYeGtEkzRczyEMrx9PvjOkry1L5bYgZ0",
+    authDomain: "converse-c3aa7.firebaseapp.com",
+    projectId: "converse-c3aa7",
+    storageBucket: "converse-c3aa7.appspot.com",
+    messagingSenderId: "914299700274",
+    appId: "1:914299700274:web:22e0f0574168868855282b",
+    measurementId: "G-HDFQTPYL31"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  const db = getFirestore(app);
+
+  document.getElementById("loginLink").addEventListener("click", async (e) => {
+    e.preventDefault();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      localStorage.setItem("userName", user.displayName);
+      localStorage.setItem("userPhoto", user.photoURL);
+      localStorage.setItem("userUid", user.uid);
+
+      const userRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userRef);
+
+      if (!docSnap.exists()) {
+        await setDoc(userRef, {
+          name: user.displayName,
+          photo: user.photoURL,
+          uid: user.uid
+        });
+        console.log("User added to Firestore.");
+      } else {
+        console.log("User already exists in Firestore.");
+      }
+
+      window.location.href = "welcome.html";
+    } catch (error) {
+      console.error("Login error:", error);
+    }
+  });
+
+
+
+ 
+
+
+ 
+      </script>
+</body>
+</html>

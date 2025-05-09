@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header {
+      background-color: #222;
+      color: #fff;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .header img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .header .name {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #chatContainer {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      background-color: #f0f0f0;
+    }
+
+    #chatBox {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      max-width: 60%;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 10px;
+      word-wrap: break-word;
+    }
+
+    .sent {
+      align-self: flex-end;
+      background-color: #dcf8c6;
+    }
+
+    .received {
+      align-self: flex-start;
+      background-color: #fff;
+    }
+
+    .timestamp {
+      font-size: 10px;
+      color: #888;
+      margin-top: 5px;
+      display: block;
+      text-align: right;
+    }
+
+    .seen {
+      color: #4fc3f7;
+    }
+
+    .input-container {
+      display: flex;
+      padding: 10px;
+      background-color: #fff;
+      border-top: 1px solid #ccc;
+    }
+
+    #messageInput {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+
+    #sendBtn {
+      padding: 10px 15px;
+      margin-left: 10px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .typing-indicator {
+      font-size: 13px;
+      color: #555;
+      font-style: italic;
+      margin: 0 10px;
+      padding-left: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img id="chatWithPhoto" src="" alt="User" />
+    <span class="name" id="chatWithName"></span>
+  </div>
+
+  <div id="chatContainer">
+    <div id="chatBox"></div>
+  </div>
+
+  <div class="typing-indicator" id="typingIndicator"></div>
+
+  <div class="input-container">
+    <input type="text" id="messageInput" placeholder="Type your message..." />
+    <button id="sendBtn">Send</button>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAWYeGtEkzRczyEMrx9PvjOkry1L5bYgZ0",
+      authDomain: "converse-c3aa7.firebaseapp.com",
+      projectId: "converse-c3aa7",
+      storageBucket: "converse-c3aa7.appspot.com",
+      messagingSenderId: "914299700274",
+      appId: "1:914299700274:web:22e0f0574168868855282b"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const myUid = localStorage.getItem("userUid");
+    const chatWithUid = localStorage.getItem("chatWithUid");
+    const chatWithName = localStorage.getItem("chatWithName");
+    const chatWithPhoto = localStorage.getItem("chatWithPhoto");
+    const chatId = [myUid, chatWithUid].sort().join("_");
+
+    document.getElementById("chatWithName").textContent = chatWithName || "Unknown User";
+    document.getElementById("chatWithPhoto").src = chatWithPhoto || "https://via.placeholder.com/40";
+
+    const chatBox = document.getElementById("chatBox");
+    const input = document.getElementById("messageInput");
+    const typingIndicator = document.getElementById("typingIndicator");
+
+    const sendMessage = async () => {
+      const text = input.value.trim();
+      if (!text) return;
+
+      await db.collection("chats").doc(chatId).collection("messages").add({
+        text,
+        sender: myUid,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        seen: false
+      });
+
+      input.value = "";
+      db.collection("chats").doc(chatId).set({ typing: "" }, { merge: true });
+    };
+
+    const scrollToBottom = () => {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    db.collection("chats").doc(chatId).collection("messages").orderBy("timestamp")
+      .onSnapshot(snapshot => {
+        const fragment = document.createDocumentFragment();
+        chatBox.innerHTML = "";
+
+        snapshot.forEach(doc => {
+          const msg = doc.data();
+          const msgId = doc.id;
+
+          if (msg.sender !== myUid && !msg.seen) {
+            db.collection("chats").doc(chatId).collection("messages").doc(msgId).update({ seen: true });
+          }
+
+          const msgDiv = document.createElement("div");
+          msgDiv.classList.add("message", msg.sender === myUid ? "sent" : "received");
+
+          const time = msg.timestamp?.toDate().toLocaleTimeString([], {
+            hour: '2-digit', minute: '2-digit'
+          }) || "";
+
+          const seenClass = msg.seen ? "seen" : "";
+          const seenIndicator = msg.sender === myUid
+            ? `<span class="timestamp ${seenClass}">${time} ${msg.seen ? "✓✓" : "✓"}</span>`
+            : `<span class="timestamp">${time}</span>`;
+
+          msgDiv.innerHTML = `${msg.text} ${seenIndicator}`;
+          fragment.appendChild(msgDiv);
+        });
+
+        chatBox.appendChild(fragment);
+
+        // Check if the user is at the bottom
+        const atBottom = chatBox.scrollHeight - chatBox.scrollTop === chatBox.clientHeight;
+
+        // Scroll to the bottom only if the user was at the bottom
+        if (atBottom) {
+          setTimeout(scrollToBottom, 100);
+        }
+      });
+
+    input.addEventListener("input", () => {
+      db.collection("chats").doc(chatId).set({ typing: myUid }, { merge: true });
+
+      clearTimeout(window.typingTimeout);
+      window.typingTimeout = setTimeout(() => {
+        db.collection("chats").doc(chatId).set({ typing: "" }, { merge: true });
+      }, 2000);
+    });
+
+    db.collection("chats").doc(chatId).onSnapshot(doc => {
+      const typingUid = doc.data()?.typing;
+      typingIndicator.textContent =
+        typingUid && typingUid !== myUid ? `${chatWithName} is typing...` : "";
+    });
+
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+  </script>
+</body>
+</html>
