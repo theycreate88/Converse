@@ -460,6 +460,40 @@ msgDiv.innerHTML = `${messageWithBreaksAndSpaces} ${seenIndicator}`;
           contextMenu.style.display = "flex";
         });
 
+        let touchTimeout;
+
+msgDiv.addEventListener("touchstart", (e) => {
+  if (msg.sender !== myUid) return;
+
+  touchTimeout = setTimeout(() => {
+    currentMessageElement = msgDiv;
+    currentMessageId = msgId;
+
+    const touch = e.touches[0];
+    const menuWidth = 130;
+    const menuHeight = 80;
+    let left = touch.pageX - menuWidth - 10;
+    let top = touch.pageY;
+
+    // Keep menu within bounds
+    left = Math.max(0, left);
+    top = Math.min(window.innerHeight - menuHeight, top);
+
+    contextMenu.style.left = `${left}px`;
+    contextMenu.style.top = `${top}px`;
+    contextMenu.style.display = "flex";
+  }, 600); // 600ms for long press
+});
+
+msgDiv.addEventListener("touchend", () => {
+  clearTimeout(touchTimeout);
+});
+
+msgDiv.addEventListener("touchmove", () => {
+  clearTimeout(touchTimeout); // cancel if the user scrolls
+});
+
+
         fragment.appendChild(msgDiv);
       });
 
@@ -513,16 +547,15 @@ msgDiv.innerHTML = `${messageWithBreaksAndSpaces} ${seenIndicator}`;
       typingUid && typingUid !== myUid ? `${chatWithName} is typing...` : "";
   });
 
- input.addEventListener("keypress", (e) => {
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  if (e.key === "Enter") {
-    if (!e.shiftKey || isMobile) {
-      e.preventDefault();
-      sendMessage();
-    }
+input.addEventListener("keydown", (e) => {
+  // Only send message if Enter is pressed without Shift
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // Prevent newline
+    sendMessage();
   }
+  // If Shift+Enter, allow newline (no need to handle separately — default behavior)
 });
+
 
   document.getElementById("sendBtn").addEventListener("click", sendMessage);
 </script>
