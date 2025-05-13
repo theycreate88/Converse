@@ -182,6 +182,34 @@
       100% { top: -100%; }
     }
 
+     @media (max-width: 480px){
+
+
+    #typing{
+      display: none;
+    }
+    #footer{
+      display: none;
+    }
+
+
+    #backgroundcover {
+  height: 100vh;
+  width: 100vi;
+  text-align: center;
+ 
+ 
+  
+  background: 
+     
+    url('converse4.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+
+}
+     }
     
     </style>
 </head>
@@ -249,34 +277,32 @@
       </div>
     </div>
  
-    <script type="module">
+  <script type="module">
+  // Curtain
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.body.style.overflow = 'auto';
+    }, 2000);
+  });
 
-      //curtain
-      window.addEventListener('load', () => {
-      // Allow scroll after curtain is gone
-      setTimeout(() => {
-        document.body.style.overflow = 'auto';
-      }, 2000); // Same as animation duration
-    });
+  const text = "Connecting You – Not Just Nationally but Internationally!";
+  const speed = 50;
+  let index = 0;
 
-        const text = "Connecting You – Not Just Nationally but Internationally!";
-        const speed = 50; // speed in ms
-        let index = 0;
-    
-        function typeText() {
-          if (index < text.length) {
-            document.getElementById("typing").textContent += text.charAt(index);
-            index++;
-            setTimeout(typeText, speed);
-          }
-        }
-    
-        window.onload = typeText;
+  function typeText() {
+    if (index < text.length) {
+      document.getElementById("typing").textContent += text.charAt(index);
+      index++;
+      setTimeout(typeText, speed);
+    }
+  }
 
- // Import Firebase modules (modular SDK)
- import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  window.onload = typeText;
+
+  // Firebase Modules
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAWYeGtEkzRczyEMrx9PvjOkry1L5bYgZ0",
@@ -299,6 +325,7 @@
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
+      // Store user info locally
       localStorage.setItem("userName", user.displayName);
       localStorage.setItem("userPhoto", user.photoURL);
       localStorage.setItem("userUid", user.uid);
@@ -306,29 +333,31 @@
       const userRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(userRef);
 
-      if (!docSnap.exists()) {
+      if (docSnap.exists()) {
+        // Update only email if user exists
+        await updateDoc(userRef, {
+          email: user.email
+        });
+        console.log("User email updated in Firestore.");
+      } else {
+        // Create new user
         await setDoc(userRef, {
           name: user.displayName,
           photo: user.photoURL,
-          uid: user.uid
+          uid: user.uid,
+          email: user.email
         });
-        console.log("User added to Firestore.");
-      } else {
-        console.log("User already exists in Firestore.");
+        console.log("New user added to Firestore.");
       }
 
       window.location.href = "welcome.html";
+
     } catch (error) {
       console.error("Login error:", error);
     }
   });
+</script>
 
 
-
- 
-
-
- 
-      </script>
 </body>
 </html>
