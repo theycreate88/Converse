@@ -40,6 +40,22 @@
       font-size: 18px;
       font-weight: bold;
     }
+.back-button {
+  background: none;
+  
+  border: none;
+  color: white;
+  font-size: 24px;
+  font-weight: 800;
+  opacity: 0.6;
+  margin-right: 10px;
+  cursor: pointer;
+    transition: all 0.3s ease; /* Smooth effect */
+}
+
+.back-button:hover{
+    opacity: 1;
+}
 
     #chatContainer {
       flex: 1;
@@ -130,14 +146,18 @@
       border-top: 1px solid #ccc;
     }
 
-    #messageInput {
-      flex: 1;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 20px;
-      outline: none;
-    }
+  #messageInput {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  outline: none;
+  resize: none;
+  line-height: 1.4;
+  font-family: Arial, sans-serif;
+}
+
 
     #sendBtn {
       padding: 10px 15px;
@@ -157,20 +177,97 @@
       padding-left: 5px;
     }
 
-    #emojiBtn {
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
+  
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
 }
 
-  </style>
+.dot-loader span {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  background-color: #333;
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dot-loader span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.dot-loader span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+.dot-loader span:nth-child(3) {
+  animation-delay: 0;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+ 
+/* Floating context menu */
+.context-menu {
+  position: absolute;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  display: none;
+  flex-direction: column;
+  padding: 4px 0;
+  min-width: 120px;
+  font-family: inherit;
+}
+
+/* Common styles for both buttons */
+.context-menu button {
+  border: none;
+  background: transparent;
+  padding: 10px 16px;
+  text-align: left;
+  width: 100%;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+/* Hover effect */
+.context-menu button:hover {
+  background-color: #f0f0f0;
+}
+
+ 
+
+</style>
+
+
+ 
 </head>
 <body>
-  <div class="header">
-    <img id="chatWithPhoto" src="" alt="User" />
-    <span class="name" id="chatWithName"></span>
-  </div>
+ <div class="header">
+  <button id="backBtn" class="back-button">←</button>
+  <img id="chatWithPhoto" src="" alt="User" />
+  <span class="name" id="chatWithName"></span>
+</div>
+
 
   <div id="chatContainer">
     <div id="chatBox">
@@ -182,129 +279,256 @@
   <div class="typing-indicator" id="typingIndicator"></div>
 
   <div class="input-container">
-    <input type="text" id="messageInput" placeholder="Type your message..." />
+   <textarea id="messageInput" rows="1" placeholder="Type a message..."></textarea>
     <button id="sendBtn">Send</button>
  
 
   </div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAWYeGtEkzRczyEMrx9PvjOkry1L5bYgZ0",
-      authDomain: "converse-c3aa7.firebaseapp.com",
-      projectId: "converse-c3aa7",
-      storageBucket: "converse-c3aa7.appspot.com",
-      messagingSenderId: "914299700274",
-      appId: "1:914299700274:web:22e0f0574168868855282b"
-    };
+  <div id="loadingOverlay" class="loading-overlay">
+  <div class="dot-loader">
+    <span></span><span></span><span></span>
+  </div>
+</div>
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+<script>
 
-    const myUid = localStorage.getItem("userUid");
-    const chatWithUid = localStorage.getItem("chatWithUid");
-    const chatWithName = localStorage.getItem("chatWithName");
-    const chatWithPhoto = localStorage.getItem("chatWithPhoto");
-    const chatId = [myUid, chatWithUid].sort().join("_");
+    const senderUid = localStorage.getItem("userUid");
+const senderName = localStorage.getItem("userName");
+const senderPhoto = localStorage.getItem("userPhoto");
 
-    document.getElementById("chatWithName").textContent = chatWithName || "Unknown User";
-    document.getElementById("chatWithPhoto").src = chatWithPhoto || "https://via.placeholder.com/40";
+const receiverUid = localStorage.getItem("chatWithUid");
+const receiverName = localStorage.getItem("chatWithName");
+const receiverPhoto = localStorage.getItem("chatWithPhoto");
 
-    const chatBox = document.getElementById("chatBox");
-    const input = document.getElementById("messageInput");
-    const typingIndicator = document.getElementById("typingIndicator");
+  // Firebase config and initializations...
+  const firebaseConfig = {
+    apiKey: "AIzaSyAWYeGtEkzRczyEMrx9PvjOkry1L5bYgZ0",
+    authDomain: "converse-c3aa7.firebaseapp.com",
+    projectId: "converse-c3aa7",
+    storageBucket: "converse-c3aa7.appspot.com",
+    messagingSenderId: "914299700274",
+    appId: "1:914299700274:web:22e0f0574168868855282b"
+  };
 
-    const scrollToBottom = () => {
-      const anchor = document.getElementById("scrollAnchor");
-      if (anchor) {
-        anchor.scrollIntoView({ behavior: "smooth" });
-      }
-    };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
 
-    const sendMessage = async () => {
-      const text = input.value.trim();
-      if (!text) return;
+  const myUid = localStorage.getItem("userUid");
+  const chatWithUid = localStorage.getItem("chatWithUid");
+  const chatWithName = localStorage.getItem("chatWithName");
+  const chatWithPhoto = localStorage.getItem("chatWithPhoto");
+  const chatId = [myUid, chatWithUid].sort().join("_");
 
-      await db.collection("chats").doc(chatId).collection("messages").add({
-        text,
-        sender: myUid,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        seen: false
-      });
+  document.getElementById("chatWithName").textContent = chatWithName || "Unknown User";
+  document.getElementById("chatWithPhoto").src = chatWithPhoto || "https://via.placeholder.com/40";
 
-      input.value = "";
-      db.collection("chats").doc(chatId).set({ typing: "" }, { merge: true });
+  const chatBox = document.getElementById("chatBox");
+  const input = document.getElementById("messageInput");
+  const typingIndicator = document.getElementById("typingIndicator");
 
-      setTimeout(scrollToBottom, 100);
-    };
+  document.getElementById("backBtn").addEventListener("click", () => {
+    document.getElementById("loadingOverlay").style.display = "flex";
+    setTimeout(() => {
+      window.location.href = "welcome.html";
+    }, 1500);
+  });
 
-    db.collection("chats").doc(chatId).collection("messages").orderBy("timestamp")
-      .onSnapshot(snapshot => {
-        const fragment = document.createDocumentFragment();
-        chatBox.innerHTML = "";
+  const scrollToBottom = () => {
+    const anchor = document.getElementById("scrollAnchor");
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+const sendMessage = async () => {
+  const text = input.value.trim();
+  if (!text) return;
 
-        snapshot.forEach(doc => {
-          const msg = doc.data();
-          const msgId = doc.id;
+  await db.collection('chats')
+    .doc(chatId)
+    .collection('messages')
+    .add({
+      sender: senderUid,
+      receiver: receiverUid,
+      text: text,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      seen: false
+    });
 
-          if (msg.sender !== myUid && !msg.seen) {
-            db.collection("chats").doc(chatId).collection("messages").doc(msgId).update({ seen: true });
-          }
+  // Update last message for sender
+  await db.collection('users')
+    .doc(senderUid)
+    .collection('recentChats')
+    .doc(receiverUid)
+    .set({
+      name: receiverName,
+      photo: receiverPhoto,
+      lastMessage:"You: "+text,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
 
-          const msgDiv = document.createElement("div");
-          msgDiv.classList.add("message", msg.sender === myUid ? "sent" : "received");
+  // Update last message for receiver
+  await db.collection('users')
+    .doc(receiverUid)
+    .collection('recentChats')
+    .doc(senderUid)
+    .set({
+      name: senderName,
+      photo: senderPhoto,
+      lastMessage:senderName+": "+ text,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
 
-          const time = msg.timestamp?.toDate().toLocaleTimeString([], {
-            hour: '2-digit', minute: '2-digit'
-          }) || "";
+  input.value = "";
+  db.collection("chats").doc(chatId).set({ typing: "" }, { merge: true });
 
-          const seenClass = msg.seen ? "seen" : "";
-          const seenIndicator = msg.sender === myUid
-            ? `<span class="timestamp ${seenClass}">${time} ${msg.seen ? "✓✓" : "✓"}</span>`
-            : `<span class="timestamp">${time}</span>`;
+  setTimeout(scrollToBottom, 100);
+};
 
-          msgDiv.innerHTML = `${msg.text} ${seenIndicator}`;
-          fragment.appendChild(msgDiv);
+
+
+  // Create floating context menu
+  const contextMenu = document.createElement("div");
+  contextMenu.classList.add("context-menu");
+  const editBtn = document.createElement("button");
+  const deleteBtn = document.createElement("button");
+  editBtn.textContent = "Edit";
+  deleteBtn.textContent = "Delete";
+  editBtn.classList.add("edit");
+  deleteBtn.classList.add("delete");
+  contextMenu.appendChild(editBtn);
+  contextMenu.appendChild(deleteBtn);
+  document.body.appendChild(contextMenu);
+
+  let currentMessageElement = null;
+  let currentMessageId = null;
+
+  db.collection("chats").doc(chatId).collection("messages").orderBy("timestamp")
+    .onSnapshot(snapshot => {
+      const fragment = document.createDocumentFragment();
+      chatBox.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const msg = doc.data();
+        const msgId = doc.id;
+
+        if (msg.sender !== myUid && !msg.seen) {
+          db.collection("chats").doc(chatId).collection("messages").doc(msgId).update({ seen: true });
+        }
+
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("message", msg.sender === myUid ? "sent" : "received");
+        msgDiv.dataset.id = msgId;
+
+        const time = msg.timestamp?.toDate().toLocaleTimeString([], {
+          hour: '2-digit', minute: '2-digit'
+        }) || "";
+
+        const seenClass = msg.seen ? "seen" : "";
+        const seenIndicator = msg.sender === myUid
+          ? `<span class="timestamp ${seenClass}">${time} ${msg.seen ? "✓✓" : "✓"}</span>`
+          : `<span class="timestamp">${time}</span>`;
+
+  const messageWithBreaksAndSpaces = msg.text ? 
+  msg.text
+    .replace(/ /g, "&nbsp;")     // preserve spaces
+    .replace(/\n/g, "<br>")      // preserve line breaks
+  : '';  // If msg.text is undefined, use an empty string
+
+msgDiv.innerHTML = `${messageWithBreaksAndSpaces} ${seenIndicator}`;
+
+        // Right-click event
+        msgDiv.addEventListener("contextmenu", (e) => {
+          e.preventDefault();
+          if (msg.sender !== myUid) return; // Only allow editing/deleting own messages
+
+          currentMessageElement = msgDiv;
+          currentMessageId = msgId;
+
+          const menuWidth = 130;
+          const menuHeight = 80;
+          let left = e.pageX - menuWidth - 10;
+          let top = e.pageY;
+
+          // Keep menu within bounds
+          left = Math.max(0, left);
+          top = Math.min(window.innerHeight - menuHeight, top);
+
+          contextMenu.style.left = `${left}px`;
+          contextMenu.style.top = `${top}px`;
+          contextMenu.style.display = "flex";
         });
 
-        chatBox.appendChild(fragment);
-
-        // Re-append anchor and scroll
-        const anchor = document.createElement("div");
-        anchor.id = "scrollAnchor";
-        chatBox.appendChild(anchor);
-
-        setTimeout(scrollToBottom, 100);
+        fragment.appendChild(msgDiv);
       });
 
-    input.addEventListener("input", () => {
-      db.collection("chats").doc(chatId).set({ typing: myUid }, { merge: true });
-
-      clearTimeout(window.typingTimeout);
-      window.typingTimeout = setTimeout(() => {
-        db.collection("chats").doc(chatId).set({ typing: "" }, { merge: true });
-      }, 2000);
+      chatBox.appendChild(fragment);
+      chatBox.appendChild(document.createElement("div")).id = "scrollAnchor";
+      setTimeout(scrollToBottom, 100);
     });
 
-    db.collection("chats").doc(chatId).onSnapshot(doc => {
-      const typingUid = doc.data()?.typing;
-      typingIndicator.textContent =
-        typingUid && typingUid !== myUid ? `${chatWithName} is typing...` : "";
-    });
+  // Dismiss context menu on click outside
+  document.addEventListener("click", (e) => {
+    if (!contextMenu.contains(e.target)) {
+      contextMenu.style.display = "none";
+    }
+  });
 
-    input.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
+  // Edit button logic
+  editBtn.addEventListener("click", () => {
+    if (!currentMessageId || !currentMessageElement) return;
+    const currentText = currentMessageElement.innerText.split("\n")[0];
+    const newText = prompt("Edit your message:", currentText);
+    if (newText && newText.trim() !== currentText) {
+      db.collection("chats").doc(chatId).collection("messages").doc(currentMessageId).update({
+        text: newText.trim()
+      });
+    }
+    contextMenu.style.display = "none";
+  });
 
-    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+  // Delete button logic
+  deleteBtn.addEventListener("click", () => {
+    if (!currentMessageId) return;
+    const confirmDelete = confirm("Are you sure you want to delete this message?");
+    if (confirmDelete) {
+      db.collection("chats").doc(chatId).collection("messages").doc(currentMessageId).delete();
+    }
+    contextMenu.style.display = "none";
+  });
 
-  
+  // Typing indicator logic
+  input.addEventListener("input", () => {
+    db.collection("chats").doc(chatId).set({ typing: myUid }, { merge: true });
+    clearTimeout(window.typingTimeout);
+    window.typingTimeout = setTimeout(() => {
+      db.collection("chats").doc(chatId).set({ typing: "" }, { merge: true });
+    }, 2000);
+  });
+
+  db.collection("chats").doc(chatId).onSnapshot(doc => {
+    const typingUid = doc.data()?.typing;
+    typingIndicator.textContent =
+      typingUid && typingUid !== myUid ? `${chatWithName} is typing...` : "";
+  });
+
+ input.addEventListener("keypress", (e) => {
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if (e.key === "Enter") {
+    if (!e.shiftKey || isMobile) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+});
+
+  document.getElementById("sendBtn").addEventListener("click", sendMessage);
+</script>
 
 
-  </script>
+
+
 </body>
 </html>
